@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Water Quality Prediction</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="10">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url("{{ url_for('static', filename='water.jpeg') }}") no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            backdrop-filter: blur(5px);
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 50px;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #0077cc;
+        }
+
+        .metric {
+            font-size: 20px;
+            margin: 10px 0;
+            text-align: center;
+            color: #333;
+        }
+
+        .metric span {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+            color: {{ 'green' if sensor_status == 'online' else 'red' }};
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .chart-box {
+            flex: 1;
+            min-width: 260px;
+            max-width: 48%;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #ffffff;
+            text-shadow: 0 0 5px #dd3d3d;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                margin-top: 30px;
+            }
+
+            .metric {
+                font-size: 18px;
+            }
+
+            .chart-box {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌊 Live Water Quality Prediction</h1>
+
+        <div class="metric"><span>pH:</span> {{ ph }}</div>
+        <div class="metric"><span>EC:</span> {{ ec }}</div>
+        <div class="metric"><span>Prediction:</span> <strong>{{ label }}</strong></div>
+        <div class="status">Sensor Status: {{ sensor_status|capitalize }}</div>
+
+        <div class="chart-container">
+            <div class="chart-box">
+                <canvas id="phChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <canvas id="ecChart"></canvas>
+            </div>
+        </div>
+
+        <footer><p>© Designed by Siva and Shree</p></footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const timeLabels = {{ time_labels | tojson }};
+        const phValues = {{ ph_values | tojson }};
+        const ecValues = {{ ec_values | tojson }};
+
+        new Chart(document.getElementById('phChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'pH',
+                    data: phValues,
+                    borderColor: 'blue',
+                    backgroundColor: 'rgba(0, 119, 204, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'pH Value'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('ecChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'EC (Conductivity)',
+                    data: ecValues,
+                    borderColor: 'green',
+                    backgroundColor: 'rgba(0, 200, 100, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'EC Value (μS/cm)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
